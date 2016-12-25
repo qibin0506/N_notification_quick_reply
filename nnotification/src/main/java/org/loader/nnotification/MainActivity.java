@@ -4,6 +4,8 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +24,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void click(View view) {
+        final NotificationManager nm = getSystemService(NotificationManager.class);
+        Notification notification = buildNotification(true);
+        // step 5 notify
+        nm.notify(NOTIFICATION_ID, notification);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                nm.notify(NOTIFICATION_ID, buildNotification(false));
+            }
+        }, 2000);
+    }
+
+    /**
+     * 创建通知
+     * @param isFirst 是否是第一次通知
+     * @return
+     */
+    private Notification buildNotification(boolean isFirst) {
         // step 1 创建RemoteInput
         RemoteInput remoteInput = new RemoteInput.Builder(RESULT_KEY)
                 .setLabel("回复这条消息")
@@ -36,15 +57,18 @@ public class MainActivity extends AppCompatActivity {
                 .addRemoteInput(remoteInput).build();
 
         // step 4 创建notification
-        Notification notification = new NotificationCompat.Builder(this)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle("请问是否需要信用卡?")
                 .setContentText("您好，我是XX银行的XX经理， 请问你需要办理信用卡吗？")
+                .setColor(Color.CYAN)
                 .addAction(act)
-                .build();
+                .setCategory(Notification.CATEGORY_MESSAGE);
 
-        // step 5 notify
-        NotificationManager nm = getSystemService(NotificationManager.class);
-        nm.notify(NOTIFICATION_ID, notification);
+        if (isFirst) {
+            builder.setDefaults(Notification.DEFAULT_SOUND);
+            builder.setFullScreenIntent(pi, false);
+        }
+        return builder.build();
     }
 }
